@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket } from 'lucide-react';
+import { Smartphone, Gift, Plane, Bus, Train, User, Zap, Star, Ticket } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import NotificationBell from './notifications/NotificationBell';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,13 +21,6 @@ const Dashboard = () => {
     const name = localStorage.getItem('userName') || localStorage.getItem('userEmail') || 'User';
     setUserName(name);
   }, [navigate]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
-    navigate('/');
-  };
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -103,36 +98,31 @@ const Dashboard = () => {
             </Link>
             
             <div className="flex items-center space-x-4">
-              {/* User Avatar - No email display */}
-              <Avatar className="h-9 w-9 border-2 border-orange-200">
-                <AvatarImage src="" alt={displayName} />
-                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm">
-                  {getInitials(displayName)}
-                </AvatarFallback>
-              </Avatar>
+              {/* Notifications */}
+              <NotificationBell />
               
-              <span className="text-gray-700 font-semibold hidden sm:block">
-                {displayName}
-              </span>
-              
-              <Button onClick={handleLogout} variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-colors">
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
+              {/* Enhanced Profile Section */}
+              <Link to="/profile" className="flex items-center space-x-3 bg-gradient-to-r from-orange-50 to-pink-50 px-4 py-2 rounded-xl border border-orange-200 hover:shadow-md transition-all duration-300 group">
+                <Avatar className="h-10 w-10 border-2 border-orange-300 group-hover:scale-105 transition-transform">
+                  <AvatarImage src="" alt={displayName} />
+                  <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm">
+                    {getInitials(displayName)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="hidden sm:block">
+                  <p className="text-gray-900 font-semibold text-sm">
+                    {displayName}
+                  </p>
+                  <p className="text-gray-500 text-xs">View Profile</p>
+                </div>
+              </Link>
             </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {displayName}! 👋
-          </h1>
-          <p className="text-gray-600">Ready for your next recharge or booking?</p>
-        </div>
-
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           {services.map((service, index) => {
