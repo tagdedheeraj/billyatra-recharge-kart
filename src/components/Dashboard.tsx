@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +26,12 @@ const Dashboard = () => {
     localStorage.removeItem('userName');
     navigate('/');
   };
+
+  const getInitials = (name: string) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  const displayName = userName.split('@')[0];
 
   const services = [
     {
@@ -80,25 +86,36 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50">
-      {/* Header */}
-      <header className="bg-white shadow-lg border-b border-orange-100">
+      {/* Enhanced Header */}
+      <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 backdrop-blur-md bg-white/95">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2 rounded-xl">
-                <Smartphone className="h-6 w-6 text-white" />
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 rounded-xl shadow-lg">
+                <Smartphone className="h-7 w-7 text-white" />
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                Billyatra
-              </span>
+              <div>
+                <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                  Billyatra
+                </span>
+                <div className="text-xs text-gray-500 font-medium">Mobile Recharge Platform</div>
+              </div>
             </Link>
             
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <User className="h-5 w-5 text-gray-600" />
-                <span className="text-gray-700 font-medium">{userName}</span>
-              </div>
-              <Button onClick={handleLogout} variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+              {/* User Avatar - No email display */}
+              <Avatar className="h-9 w-9 border-2 border-orange-200">
+                <AvatarImage src="" alt={displayName} />
+                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold text-sm">
+                  {getInitials(displayName)}
+                </AvatarFallback>
+              </Avatar>
+              
+              <span className="text-gray-700 font-semibold hidden sm:block">
+                {displayName}
+              </span>
+              
+              <Button onClick={handleLogout} variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 transition-colors">
                 <LogOut className="h-4 w-4 mr-2" />
                 Logout
               </Button>
@@ -111,7 +128,7 @@ const Dashboard = () => {
         {/* Welcome Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {userName.split('@')[0]}! 👋
+            Welcome back, {displayName}! 👋
           </h1>
           <p className="text-gray-600">Ready for your next recharge or booking?</p>
         </div>
