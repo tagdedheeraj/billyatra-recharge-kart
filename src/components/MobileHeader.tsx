@@ -53,84 +53,76 @@ const MobileHeader: React.FC<MobileHeaderProps> = ({ user }) => {
   const userName = user.displayName || user.email?.split('@')[0] || 'User';
 
   return (
-    <header className="bg-white shadow-lg border-b border-orange-100 sticky top-0 z-50">
-      <div className="px-4 py-4">
+    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 backdrop-blur-md bg-white/95">
+      <div className="px-4 py-3">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link to="/firebase-dashboard" className="flex items-center space-x-3">
-            <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 rounded-xl shadow-lg">
-              <Smartphone className="h-6 w-6 text-white" />
+          {/* Logo - More compact */}
+          <Link to="/firebase-dashboard" className="flex items-center space-x-2">
+            <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2 rounded-lg shadow-sm">
+              <Smartphone className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <span className="text-xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                Billyatra
-              </span>
-              <div className="text-xs text-gray-500 font-medium">Mobile Recharge</div>
-            </div>
+            <span className="text-lg font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+              Billyatra
+            </span>
           </Link>
           
-          {/* Right side - User Avatar, Notifications & Menu */}
-          <div className="flex items-center space-x-3">
-            {/* User Avatar */}
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8 border-2 border-orange-200">
-                <AvatarImage src={user.photoURL} alt={userName} />
-                <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-sm font-semibold">
-                  {getInitials(userName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="hidden sm:block">
-                <p className="text-sm font-semibold text-gray-900">{userName}</p>
-              </div>
-            </div>
+          {/* Right side - Minimal design */}
+          <div className="flex items-center space-x-2">
+            {/* User Avatar - Smaller */}
+            <Avatar className="h-7 w-7 border border-orange-200">
+              <AvatarImage src={user.photoURL} alt={userName} />
+              <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white text-xs font-semibold">
+                {getInitials(userName)}
+              </AvatarFallback>
+            </Avatar>
 
-            {/* Notifications */}
+            {/* Notifications - Smaller */}
             <NotificationBell />
             
-            {/* Mobile Menu */}
+            {/* Mobile Menu - Cleaner button */}
             <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="sm" className="p-2 hover:bg-orange-50">
-                  <Menu className="h-6 w-6 text-gray-600" />
+                <Button variant="ghost" size="sm" className="p-1.5 hover:bg-orange-50 rounded-lg">
+                  <Menu className="h-5 w-5 text-gray-700" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 bg-gradient-to-b from-orange-50 to-pink-50">
-                <SheetHeader className="border-b border-orange-200 pb-6 mb-6">
-                  <SheetTitle className="flex items-center space-x-4">
-                    <Avatar className="h-12 w-12 border-2 border-orange-300">
+              <SheetContent side="right" className="w-72 bg-white border-l border-gray-100">
+                <SheetHeader className="border-b border-gray-100 pb-4 mb-4">
+                  <SheetTitle className="flex items-center space-x-3">
+                    <Avatar className="h-10 w-10 border-2 border-orange-200">
                       <AvatarImage src={user.photoURL} alt={userName} />
                       <AvatarFallback className="bg-gradient-to-r from-orange-500 to-pink-500 text-white font-bold">
                         {getInitials(userName)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="text-left">
-                      <p className="font-bold text-gray-900 text-lg">{userName}</p>
-                      <p className="text-sm text-orange-600 font-medium">Welcome back!</p>
+                      <p className="font-semibold text-gray-900">{userName}</p>
+                      <p className="text-sm text-orange-600">Welcome back!</p>
                     </div>
                   </SheetTitle>
                 </SheetHeader>
                 
-                {/* Menu Items */}
-                <div className="space-y-3">
+                {/* Menu Items - Cleaner design */}
+                <div className="space-y-1">
                   {menuItems.map((item, index) => (
                     <Link
                       key={index}
                       to={item.href}
                       onClick={() => setIsMenuOpen(false)}
-                      className="flex items-center px-4 py-4 text-gray-700 hover:bg-white hover:text-orange-600 hover:shadow-md rounded-xl transition-all duration-200 font-medium"
+                      className="flex items-center px-3 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors duration-150 font-medium text-sm"
                     >
                       {item.label}
                     </Link>
                   ))}
                   
-                  <hr className="my-6 border-orange-200" />
+                  <hr className="my-4 border-gray-100" />
                   
                   <Button
                     onClick={handleLogout}
                     variant="ghost"
-                    className="w-full justify-start px-4 py-4 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl font-medium"
+                    className="w-full justify-start px-3 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-lg font-medium text-sm"
                   >
-                    <LogOut className="h-5 w-5 mr-3" />
+                    <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </Button>
                 </div>
