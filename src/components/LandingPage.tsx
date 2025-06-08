@@ -3,8 +3,11 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Smartphone, Gift, Plane, Bus, Train, Star, Zap, Shield, Menu } from 'lucide-react';
 import { Button } from './ui/button';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const LandingPage = () => {
+  const isMobile = useIsMobile();
+
   return (
     <div className="min-h-screen">
       {/* Header - Mobile Optimized */}
@@ -19,36 +22,46 @@ const LandingPage = () => {
                 Billyatra
               </span>
             </div>
-            <div className="hidden sm:flex space-x-2 lg:space-x-4">
-              <Link to="/login">
-                <Button variant="outline" size="sm" className="border-orange-200 text-orange-600 hover:bg-orange-50 text-sm lg:text-base">
+            
+            {/* Only show auth buttons on mobile */}
+            {isMobile && (
+              <div className="hidden sm:flex space-x-2 lg:space-x-4">
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="border-orange-200 text-orange-600 hover:bg-orange-50 text-sm lg:text-base">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button size="sm" className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-sm lg:text-base">
+                    Sign Up
+                  </Button>
+                </Link>
+              </div>
+            )}
+            
+            {/* Mobile Menu Button - Only on mobile */}
+            {isMobile && (
+              <div className="sm:hidden">
+                <Menu className="h-6 w-6 text-gray-600" />
+              </div>
+            )}
+          </div>
+          
+          {/* Mobile Auth Buttons - Only on mobile */}
+          {isMobile && (
+            <div className="sm:hidden pb-4 flex space-x-2">
+              <Link to="/login" className="flex-1">
+                <Button variant="outline" size="sm" className="w-full border-orange-200 text-orange-600 hover:bg-orange-50">
                   Login
                 </Button>
               </Link>
-              <Link to="/signup">
-                <Button size="sm" className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-sm lg:text-base">
+              <Link to="/signup" className="flex-1">
+                <Button size="sm" className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600">
                   Sign Up
                 </Button>
               </Link>
             </div>
-            {/* Mobile Menu Button */}
-            <div className="sm:hidden">
-              <Menu className="h-6 w-6 text-gray-600" />
-            </div>
-          </div>
-          {/* Mobile Auth Buttons */}
-          <div className="sm:hidden pb-4 flex space-x-2">
-            <Link to="/login" className="flex-1">
-              <Button variant="outline" size="sm" className="w-full border-orange-200 text-orange-600 hover:bg-orange-50">
-                Login
-              </Button>
-            </Link>
-            <Link to="/signup" className="flex-1">
-              <Button size="sm" className="w-full bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600">
-                Sign Up
-              </Button>
-            </Link>
-          </div>
+          )}
         </div>
       </header>
 
@@ -63,14 +76,16 @@ const LandingPage = () => {
             Recharge your mobile, get exciting offers, win scratch cards, and enjoy seamless booking services
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 max-w-md sm:max-w-none mx-auto">
-            <Link to="/signup">
-              <Button size="lg" className="w-full sm:w-auto bg-white text-orange-600 hover:bg-orange-50 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
-                Get Started
-              </Button>
-            </Link>
+            {isMobile && (
+              <Link to="/signup">
+                <Button size="lg" className="w-full sm:w-auto bg-white text-orange-600 hover:bg-orange-50 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
+                  Get Started
+                </Button>
+              </Link>
+            )}
             <Link to="/recharge">
               <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-orange-600 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
-                Quick Recharge
+                {isMobile ? 'Quick Recharge' : 'Start Recharging'}
               </Button>
             </Link>
           </div>
@@ -162,11 +177,13 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 lg:mb-6">Ready to Start Your Journey?</h2>
           <p className="text-base sm:text-lg lg:text-xl mb-6 lg:mb-8 text-orange-100 max-w-2xl mx-auto">Join thousands of satisfied customers who trust Billyatra</p>
-          <Link to="/signup">
-            <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
-              Join Billyatra Today
-            </Button>
-          </Link>
+          {isMobile && (
+            <Link to="/signup">
+              <Button size="lg" className="bg-white text-orange-600 hover:bg-orange-50 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
+                Join Billyatra Today
+              </Button>
+            </Link>
+          )}
         </div>
       </section>
 
