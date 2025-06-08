@@ -5,10 +5,15 @@ import { Smartphone, Mail, Phone, Eye, EyeOff, User } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
+import { useToast } from '../ui/use-toast';
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const { signUp } = useFirebaseAuth();
+  const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [signupData, setSignupData] = useState({
     name: '',
     email: '',
@@ -17,25 +22,56 @@ const SignupPage = () => {
     confirmPassword: ''
   });
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (signupData.password !== signupData.confirmPassword) {
-      alert('Passwords do not match!');
+      toast({
+        title: "Error",
+        description: "Passwords do not match!",
+        variant: "destructive"
+      });
       return;
     }
-    // Simulate signup
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', signupData.email);
-    localStorage.setItem('userName', signupData.name);
-    navigate('/dashboard');
+
+    if (signupData.password.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    
+    const { user, error } = await signUp(signupData.email, signupData.password);
+    
+    if (error) {
+      toast({
+        title: "Signup Failed",
+        description: error,
+        variant: "destructive"
+      });
+    } else if (user) {
+      toast({
+        title: "Success",
+        description: "Account created successfully!",
+        variant: "default"
+      });
+      // Redirect to Firebase dashboard
+      navigate('/firebase-dashboard');
+    }
+    
+    setLoading(false);
   };
 
   const handleGoogleSignup = () => {
-    // Simulate Google signup
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('userEmail', 'user@gmail.com');
-    localStorage.setItem('userName', 'Google User');
-    navigate('/dashboard');
+    toast({
+      title: "Coming Soon",
+      description: "Google signup will be available soon",
+      variant: "default"
+    });
   };
 
   return (
@@ -100,11 +136,12 @@ const SignupPage = () => {
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Password"
+                  placeholder="Password (min 6 characters)"
                   value={signupData.password}
                   onChange={(e) => setSignupData({...signupData, password: e.target.value})}
                   className="h-12 pr-10"
                   required
+                  minLength={6}
                 />
                 <button
                   type="button"
@@ -126,8 +163,12 @@ const SignupPage = () => {
                 />
               </div>
               
-              <Button type="submit" className="w-full h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600">
-                Create Account
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
+                disabled={loading}
+              >
+                {loading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
 
@@ -145,6 +186,7 @@ const SignupPage = () => {
                 onClick={handleGoogleSignup}
                 variant="outline"
                 className="w-full mt-4 h-12 border-gray-300 hover:bg-gray-50"
+                disabled={loading}
               >
                 <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -159,7 +201,7 @@ const SignupPage = () => {
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Already have an account?{' '}
-                <Link to="/login" className="text-orange-600 font-semibold hover:text-orange-700">
+                <Link to="/firebase-auth" className="text-orange-600 font-semibold hover:text-orange-700">
                   Sign in
                 </Link>
               </p>
