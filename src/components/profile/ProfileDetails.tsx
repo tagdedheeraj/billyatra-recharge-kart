@@ -5,15 +5,17 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
+interface UserProfile {
+  name: string;
+  email: string;
+  mobile: string;
+  joinDate: string;
+}
+
 interface ProfileDetailsProps {
-  userProfile: {
-    name: string;
-    email: string;
-    mobile: string;
-    joinDate: string;
-  };
+  userProfile: UserProfile;
   isEditing: boolean;
-  onUserProfileChange: (updates: Partial<typeof userProfile>) => void;
+  onUserProfileChange: (updates: Partial<UserProfile>) => void;
   onSave: () => void;
   onCancel: () => void;
 }
