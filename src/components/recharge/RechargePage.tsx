@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Smartphone, ArrowLeft, Zap, Gift } from 'lucide-react';
