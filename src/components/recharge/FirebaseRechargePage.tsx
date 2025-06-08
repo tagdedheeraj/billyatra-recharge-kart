@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Smartphone, 
   Zap, 
@@ -11,13 +12,15 @@ import {
   Clock, 
   AlertCircle,
   Trophy,
-  Sparkles
+  Sparkles,
+  CreditCard
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
 import { useFirestore } from '../../hooks/useFirestore';
 import { useToast } from '../ui/use-toast';
@@ -278,14 +281,17 @@ const FirebaseRechargePage = () => {
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
                     Plan
                   </label>
-                  <Select value={selectedPlan?.value} onValueChange={setSelectedPlan}>
+                  <Select value={selectedPlan?.value} onValueChange={(value) => {
+                    const plan = plans.find(p => p.value === value);
+                    setSelectedPlan(plan);
+                  }}>
                     <SelectTrigger className="h-12">
                       <SelectValue placeholder="Select your plan" />
                     </SelectTrigger>
                     <SelectContent>
                       {plans.map((plan) => (
                         <SelectItem key={plan.value} value={plan.value}>
-                          {plan.label}
+                          {plan.label} - ₹{plan.amount}
                         </SelectItem>
                       ))}
                     </SelectContent>
