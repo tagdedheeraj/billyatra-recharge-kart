@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket, Users } from 'lucide-react';
@@ -125,16 +124,19 @@ const FirebaseDashboard = () => {
         <header className="bg-white shadow-lg border-b border-orange-100">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
-              <Link to="/" className="flex items-center space-x-2">
-                <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2 rounded-xl">
-                  <Smartphone className="h-6 w-6 text-white" />
+              <Link to="/" className="flex items-center space-x-3">
+                <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2.5 rounded-xl shadow-lg">
+                  <Smartphone className="h-7 w-7 text-white" />
                 </div>
-                <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
-                  Billyatra
-                </span>
+                <div>
+                  <span className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-pink-500 bg-clip-text text-transparent">
+                    Billyatra
+                  </span>
+                  <div className="text-xs text-gray-500 font-medium">Mobile Recharge Platform</div>
+                </div>
               </Link>
               
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 <NotificationBell />
                 <Link to="/firebase-profile">
                   <Button variant="outline" size="sm" className="text-purple-600 border-purple-200 hover:bg-purple-50">
@@ -142,9 +144,11 @@ const FirebaseDashboard = () => {
                     Profile
                   </Button>
                 </Link>
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-gray-600" />
-                  <span className="text-gray-700 font-medium">
+                <div className="flex items-center space-x-3">
+                  <div className="bg-gradient-to-r from-orange-500 to-pink-500 p-2 rounded-full">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="text-gray-700 font-semibold">
                     {user.displayName || user.email?.split('@')[0] || 'User'}
                   </span>
                 </div>
