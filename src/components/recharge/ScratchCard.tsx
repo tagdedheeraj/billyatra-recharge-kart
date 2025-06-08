@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Gift, Star, ArrowRight } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -6,9 +5,10 @@ import { Card, CardContent } from '../ui/card';
 
 interface ScratchCardProps {
   onComplete: () => void;
+  amount?: number;
 }
 
-const ScratchCard: React.FC<ScratchCardProps> = ({ onComplete }) => {
+const ScratchCard: React.FC<ScratchCardProps> = ({ onComplete, amount }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
   const [scratchPercentage, setScratchPercentage] = useState(0);
@@ -16,17 +16,21 @@ const ScratchCard: React.FC<ScratchCardProps> = ({ onComplete }) => {
   const [prize, setPrize] = useState({ amount: 0, type: '' });
 
   useEffect(() => {
-    // Generate random prize
-    const prizes = [
-      { amount: 10, type: 'Cashback' },
-      { amount: 25, type: 'Cashback' },
-      { amount: 50, type: 'Cashback' },
-      { amount: 100, type: 'Bonus' },
-      { amount: 5, type: 'Cashback' },
-      { amount: 20, type: 'Discount' }
-    ];
-    const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
-    setPrize(randomPrize);
+    // Use provided amount or generate random prize
+    if (amount) {
+      setPrize({ amount, type: 'Cashback' });
+    } else {
+      const prizes = [
+        { amount: 10, type: 'Cashback' },
+        { amount: 25, type: 'Cashback' },
+        { amount: 50, type: 'Cashback' },
+        { amount: 100, type: 'Bonus' },
+        { amount: 5, type: 'Cashback' },
+        { amount: 20, type: 'Discount' }
+      ];
+      const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+      setPrize(randomPrize);
+    }
 
     // Initialize canvas
     const canvas = canvasRef.current;
@@ -52,7 +56,7 @@ const ScratchCard: React.FC<ScratchCardProps> = ({ onComplete }) => {
 
     // Set composite operation for scratching
     ctx.globalCompositeOperation = 'destination-out';
-  }, []);
+  }, [amount]);
 
   const startScratch = (e: React.MouseEvent | React.TouchEvent) => {
     setIsScratching(true);
