@@ -54,7 +54,7 @@ const FirebaseDashboard = () => {
       title: 'Mobile Recharge',
       icon: Smartphone,
       description: 'Quick & instant recharge for all networks',
-      link: '/recharge',
+      link: '/firebase-recharge',
       gradient: 'from-orange-500 to-pink-500',
       available: true
     },
@@ -116,6 +116,12 @@ const FirebaseDashboard = () => {
             </Link>
             
             <div className="flex items-center space-x-4">
+              <Link to="/firebase-profile">
+                <Button variant="outline" size="sm" className="text-purple-600 border-purple-200 hover:bg-purple-50">
+                  <User className="h-4 w-4 mr-2" />
+                  Profile
+                </Button>
+              </Link>
               <div className="flex items-center space-x-2">
                 <User className="h-5 w-5 text-gray-600" />
                 <span className="text-gray-700 font-medium">
