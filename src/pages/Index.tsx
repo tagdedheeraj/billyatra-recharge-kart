@@ -4,7 +4,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from '../components/LandingPage';
 import LoginPage from '../components/auth/LoginPage';
 import SignupPage from '../components/auth/SignupPage';
+import FirebaseLoginPage from '../components/auth/FirebaseLoginPage';
 import Dashboard from '../components/Dashboard';
+import FirebaseDashboard from '../components/FirebaseDashboard';
 import RechargePage from '../components/recharge/RechargePage';
 import OffersPage from '../components/offers/OffersPage';
 import CouponsPage from '../components/coupons/CouponsPage';
@@ -18,7 +20,9 @@ const Index = () => {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/firebase-auth" element={<FirebaseLoginPage />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/firebase-dashboard" element={<FirebaseDashboard />} />
         <Route path="/recharge" element={<RechargePage />} />
         <Route path="/offers" element={<OffersPage />} />
         <Route path="/coupons" element={<CouponsPage />} />
