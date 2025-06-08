@@ -3,11 +3,11 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Get Firebase config from Supabase secrets
+// Firebase configuration with your provided keys
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY || "AIzaSyBBMFo9AjD8lUJgxLo5KlERcJMZsM8LpXM",
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN || "billyatra-363cc.firebaseapp.com", 
-  projectId: process.env.FIREBASE_PROJECT_ID || "billyatra-363cc",
+  apiKey: "AIzaSyBBMFo9AjD8lUJgxLo5KlERcJMZsM8LpXM",
+  authDomain: "billyatra-363cc.firebaseapp.com",
+  projectId: "billyatra-363cc",
   storageBucket: "billyatra-363cc.firebasestorage.app",
   messagingSenderId: "288179874111",
   appId: "1:288179874111:web:fbeaad77e6b883d2210b8a",
