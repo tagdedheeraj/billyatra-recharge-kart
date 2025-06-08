@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket } from 'lucide-react';
+import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
@@ -43,7 +43,7 @@ const FirebaseDashboard = () => {
         </div>
       </div>
     );
-  }
+  };
 
   if (!user) {
     return null;
@@ -56,6 +56,14 @@ const FirebaseDashboard = () => {
       description: 'Quick & instant recharge for all networks',
       link: '/firebase-recharge',
       gradient: 'from-orange-500 to-pink-500',
+      available: true
+    },
+    {
+      title: 'Refer & Earn',
+      icon: Users,
+      description: 'Invite friends and earn ₹50 for each referral',
+      link: '/referrals',
+      gradient: 'from-purple-500 to-blue-500',
       available: true
     },
     {

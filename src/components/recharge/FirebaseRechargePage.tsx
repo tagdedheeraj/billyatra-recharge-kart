@@ -1,29 +1,35 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Smartphone, ArrowLeft, Zap, Gift, CreditCard } from 'lucide-react';
+import { ArrowLeft, Smartphone, Zap, Gift, Star, CreditCard } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
 import { useFirestore } from '../../hooks/useFirestore';
+import { useReferrals } from '../../hooks/useReferrals';
 import { useToast } from '../ui/use-toast';
 import ScratchCard from './ScratchCard';
 
 const FirebaseRechargePage = () => {
   const navigate = useNavigate();
-  const { user } = useFirebaseAuth();
+  const { user, loading: authLoading } = useFirebaseAuth();
   const { saveTransaction } = useFirestore();
+  const { processReferralReward } = useReferrals();
   const { toast } = useToast();
-  const [rechargeData, setRechargeData] = useState({
-    mobile: '',
-    operator: '',
-    amount: ''
-  });
+  
+  const [mobile, setMobile] = useState('');
+  const [operator, setOperator] = useState('');
+  const [amount, setAmount] = useState('');
+  const [loading, setLoading] = useState(false);
   const [showScratchCard, setShowScratchCard] = useState(false);
-  const [rechargeSuccess, setRechargeSuccess] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [rewardAmount, setRewardAmount] = useState(0);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate('/firebase-auth');
+    }
+  }, [user, authLoading, navigate]);
 
   const operators = [
     { value: 'jio', label: 'Jio' },
@@ -32,105 +38,87 @@ const FirebaseRechargePage = () => {
     { value: 'bsnl', label: 'BSNL' }
   ];
 
-  const popularPlans = [
-    { amount: 149, validity: '24 days', data: '1GB/day', description: 'Unlimited calls + SMS' },
-    { amount: 239, validity: '28 days', data: '1.5GB/day', description: 'Unlimited calls + SMS + Disney+' },
-    { amount: 299, validity: '28 days', data: '2GB/day', description: 'Unlimited calls + SMS + JioApps' },
-    { amount: 399, validity: '56 days', data: '2.5GB/day', description: 'Unlimited calls + SMS + Premium' },
-    { amount: 555, validity: '77 days', data: '1.5GB/day', description: 'Unlimited calls + SMS + Netflix' },
-    { amount: 719, validity: '84 days', data: '2GB/day', description: 'Unlimited calls + SMS + All Apps' }
-  ];
+  const quickAmounts = [99, 149, 199, 299, 399, 499, 599, 999];
 
   const handleRecharge = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
+    if (!mobile || !operator || !amount) {
       toast({
-        title: "Authentication Required",
-        description: "Please login to continue",
-        variant: "destructive"
-      });
-      navigate('/firebase-auth');
-      return;
-    }
-
-    if (!rechargeData.mobile || !rechargeData.operator || !rechargeData.amount) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill all required fields",
+        title: "Error",
+        description: "Please fill all fields",
         variant: "destructive"
       });
       return;
     }
 
-    if (rechargeData.mobile.length !== 10) {
-      toast({
-        title: "Invalid Mobile Number",
-        description: "Please enter a valid 10-digit mobile number",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setProcessing(true);
-    
+    setLoading(true);
     try {
-      // Calculate reward (2% of recharge amount)
-      const rewardAmount = Math.floor(parseInt(rechargeData.amount) * 0.02);
+      // Calculate rewards (2% of recharge amount)
+      const rewardEarned = Math.floor(parseFloat(amount) * 0.02);
       
-      // Save transaction to Firestore
+      // Save transaction
       const transactionId = await saveTransaction({
         type: 'Mobile Recharge',
-        amount: parseInt(rechargeData.amount),
-        mobile: rechargeData.mobile,
-        operator: operators.find(op => op.value === rechargeData.operator)?.label || rechargeData.operator,
+        amount: parseFloat(amount),
+        mobile,
+        operator,
         status: 'success',
-        rewardEarned: rewardAmount
+        rewardEarned
       });
 
-      console.log('Transaction saved with ID:', transactionId);
-      
-      setRechargeSuccess(true);
-      
-      toast({
-        title: "Recharge Successful!",
-        description: `₹${rechargeData.amount} recharged to ${rechargeData.mobile}`,
-        variant: "default"
-      });
+      if (transactionId) {
+        // Check for referral rewards
+        if (user?.email) {
+          await processReferralReward(user.email);
+        }
 
-      // Show scratch card after a delay
-      setTimeout(() => {
+        toast({
+          title: "Recharge Successful!",
+          description: `₹${amount} recharged to ${mobile}`,
+          variant: "default"
+        });
+
+        setRewardAmount(rewardEarned);
         setShowScratchCard(true);
-      }, 1500);
-
+        
+        // Reset form
+        setMobile('');
+        setOperator('');
+        setAmount('');
+      }
     } catch (error) {
-      console.error('Recharge failed:', error);
+      console.error('Recharge error:', error);
       toast({
         title: "Recharge Failed",
         description: "Something went wrong. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
     }
-    
-    setProcessing(false);
   };
 
-  const handlePlanSelect = (amount: number) => {
-    setRechargeData({...rechargeData, amount: amount.toString()});
-  };
-
-  const handlePayment = () => {
-    // In a real app, this would integrate with payment gateway
+  const handleScratchComplete = () => {
+    setShowScratchCard(false);
     toast({
-      title: "Payment Gateway",
-      description: "Payment integration will be added in next phase",
+      title: "Reward Added!",
+      description: `₹${rewardAmount} added to your account`,
       variant: "default"
     });
   };
 
-  if (showScratchCard) {
-    return <ScratchCard onComplete={() => navigate('/firebase-dashboard')} />;
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
   }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50">
@@ -157,174 +145,211 @@ const FirebaseRechargePage = () => {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {rechargeSuccess ? (
-          <Card className="text-center p-8 shadow-xl border-0 bg-white">
-            <div className="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Zap className="h-8 w-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-green-600 mb-2">Recharge Successful!</h2>
-            <p className="text-gray-600 mb-4">₹{rechargeData.amount} recharged to {rechargeData.mobile}</p>
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center justify-center space-x-2 text-yellow-800">
-                <Gift className="h-5 w-5" />
-                <span className="font-semibold">You've earned ₹{Math.floor(parseInt(rechargeData.amount) * 0.02)} cashback!</span>
-              </div>
-            </div>
-            <div className="animate-pulse">
-              <p className="text-gray-500">Preparing your scratch card...</p>
-            </div>
+        {/* Hero Section */}
+        <div className="text-center mb-8">
+          <div className="bg-gradient-to-r from-orange-500 to-pink-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Smartphone className="h-10 w-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Instant Mobile Recharge
+          </h1>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            Recharge your mobile instantly and securely with Billyatra. Get exciting cashback offers and rewards!
+          </p>
+        </div>
+
+        {/* Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="shadow-md border-0">
+            <CardContent className="p-4 text-center">
+              <Zap className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Fast & Easy</h3>
+              <p className="text-sm text-gray-600">Recharge in seconds</p>
+            </CardContent>
           </Card>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Recharge Form */}
-            <Card className="shadow-xl border-0 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Smartphone className="h-5 w-5 text-orange-500" />
-                  <span>Quick Recharge</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleRecharge} className="space-y-6">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Mobile Number
-                    </label>
-                    <Input
-                      type="tel"
-                      placeholder="Enter 10-digit mobile number"
-                      value={rechargeData.mobile}
-                      onChange={(e) => setRechargeData({...rechargeData, mobile: e.target.value.replace(/\D/g, '').slice(0, 10)})}
-                      className="h-12"
-                      maxLength={10}
-                      required
-                    />
-                  </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Select Operator
-                    </label>
-                    <Select value={rechargeData.operator} onValueChange={(value) => setRechargeData({...rechargeData, operator: value})}>
-                      <SelectTrigger className="h-12">
-                        <SelectValue placeholder="Choose your operator" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {operators.map((operator) => (
-                          <SelectItem key={operator.value} value={operator.value}>
-                            {operator.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+          <Card className="shadow-md border-0">
+            <CardContent className="p-4 text-center">
+              <Gift className="h-6 w-6 text-green-500 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Cashback Offers</h3>
+              <p className="text-sm text-gray-600">Get exciting rewards</p>
+            </CardContent>
+          </Card>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Amount (₹)
-                    </label>
-                    <Input
-                      type="number"
-                      placeholder="Enter amount"
-                      value={rechargeData.amount}
-                      onChange={(e) => setRechargeData({...rechargeData, amount: e.target.value})}
-                      className="h-12"
-                      min="10"
-                      max="5000"
-                      required
-                    />
-                  </div>
+          <Card className="shadow-md border-0">
+            <CardContent className="p-4 text-center">
+              <Star className="h-6 w-6 text-blue-500 mx-auto mb-2" />
+              <h3 className="text-lg font-semibold text-gray-900">Secure Payments</h3>
+              <p className="text-sm text-gray-600">100% safe & secure</p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Recharge Form */}
+          <Card className="shadow-xl border-0 bg-white">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <Zap className="h-5 w-5 text-orange-500" />
+                <span>Quick Recharge</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleRecharge} className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Mobile Number
+                  </label>
+                  <Input
+                    type="tel"
+                    placeholder="Enter 10-digit mobile number"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    maxLength={10}
+                    className="h-12"
+                  />
+                </div>
 
-                  <div className="space-y-3">
-                    <Button 
-                      type="submit" 
-                      className="w-full h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600"
-                      disabled={processing}
-                    >
-                      <Zap className="h-4 w-4 mr-2" />
-                      {processing ? "Processing..." : "Recharge Now"}
-                    </Button>
-                    
-                    <Button 
-                      type="button"
-                      onClick={handlePayment}
-                      variant="outline"
-                      className="w-full h-12 border-blue-300 text-blue-600 hover:bg-blue-50"
-                    >
-                      <CreditCard className="h-4 w-4 mr-2" />
-                      Pay with Card/UPI
-                    </Button>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Operator
+                  </label>
+                  <Select value={operator} onValueChange={setOperator}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select your operator" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {operators.map((op) => (
+                        <SelectItem key={op.value} value={op.value}>
+                          {op.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Recharge Amount
+                  </label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="h-12"
+                    min="10"
+                    max="2000"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Quick Amount Selection
+                  </label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {quickAmounts.map((amt) => (
+                      <Button
+                        key={amt}
+                        type="button"
+                        variant="outline"
+                        onClick={() => setAmount(amt.toString())}
+                        className="h-10 text-sm"
+                      >
+                        ₹{amt}
+                      </Button>
+                    ))}
                   </div>
-                </form>
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-90 text-lg font-semibold"
+                  disabled={loading || !mobile || !operator || !amount}
+                >
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Processing...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5 mr-2" />
+                      Recharge Now
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              {amount && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Recharge Amount:</span>
+                    <span className="font-bold text-gray-900">₹{amount}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm mt-1">
+                    <span className="text-gray-600">Cashback (2%):</span>
+                    <span className="font-bold text-green-600">₹{Math.floor(parseFloat(amount || '0') * 0.02)}</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Benefits */}
+          <div className="space-y-6">
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-green-100 w-10 h-10 rounded-full flex items-center justify-center">
+                    <Zap className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Instant Recharge</h3>
+                    <p className="text-sm text-gray-600">Get recharged in seconds</p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Popular Plans */}
-            <Card className="shadow-xl border-0 bg-white">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Gift className="h-5 w-5 text-purple-500" />
-                  <span>Popular Plans</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {popularPlans.map((plan, index) => (
-                    <div
-                      key={index}
-                      className="border border-gray-200 rounded-lg p-4 hover:border-orange-300 hover:shadow-md transition-all cursor-pointer"
-                      onClick={() => handlePlanSelect(plan.amount)}
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className="text-2xl font-bold text-orange-600">₹{plan.amount}</span>
-                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                            {plan.validity}
-                          </span>
-                        </div>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="border-orange-200 text-orange-600 hover:bg-orange-50"
-                        >
-                          Select
-                        </Button>
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-gray-900">{plan.data}</p>
-                        <p className="text-xs text-gray-600">{plan.description}</p>
-                      </div>
-                    </div>
-                  ))}
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-blue-100 w-10 h-10 rounded-full flex items-center justify-center">
+                    <Gift className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">2% Cashback</h3>
+                    <p className="text-sm text-gray-600">Earn rewards on every recharge</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-lg border-0">
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-purple-100 w-10 h-10 rounded-full flex items-center justify-center">
+                    <Star className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">100% Secure</h3>
+                    <p className="text-sm text-gray-600">Safe and encrypted transactions</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-        )}
-
-        {/* Features */}
-        {!rechargeSuccess && (
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="text-center p-6 bg-gradient-to-br from-blue-500 to-purple-500 text-white border-0">
-              <Zap className="h-8 w-8 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Instant Recharge</h3>
-              <p className="text-sm text-blue-100">Get recharged within seconds</p>
-            </Card>
-            
-            <Card className="text-center p-6 bg-gradient-to-br from-green-500 to-teal-500 text-white border-0">
-              <Gift className="h-8 w-8 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Earn Cashback</h3>
-              <p className="text-sm text-green-100">2% cashback on every recharge</p>
-            </Card>
-            
-            <Card className="text-center p-6 bg-gradient-to-br from-orange-500 to-pink-500 text-white border-0">
-              <CreditCard className="h-8 w-8 mx-auto mb-3" />
-              <h3 className="font-semibold mb-2">Secure Payment</h3>
-              <p className="text-sm text-orange-100">100% safe and secure transactions</p>
-            </Card>
-          </div>
-        )}
+        </div>
       </div>
+
+      {/* Scratch Card Modal */}
+      {showScratchCard && (
+        <ScratchCard
+          amount={rewardAmount}
+          onComplete={handleScratchComplete}
+        />
+      )}
     </div>
   );
 };

@@ -9,6 +9,45 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          first_recharge_completed: boolean | null
+          id: string
+          referral_code: string
+          referred_email: string | null
+          referred_user_id: string | null
+          referrer_id: string
+          reward_amount: number | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          first_recharge_completed?: boolean | null
+          id?: string
+          referral_code: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id: string
+          reward_amount?: number | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          first_recharge_completed?: boolean | null
+          id?: string
+          referral_code?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string
+          reward_amount?: number | null
+          status?: string
+        }
+        Relationships: []
+      }
       RLS: {
         Row: {
           created_at: string
@@ -24,12 +63,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_referral_stats: {
+        Row: {
+          created_at: string
+          referral_code: string
+          successful_referrals: number | null
+          total_referrals: number | null
+          total_rewards_earned: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          referral_code: string
+          successful_referrals?: number | null
+          total_referrals?: number | null
+          total_rewards_earned?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          referral_code?: string
+          successful_referrals?: number | null
+          total_referrals?: number | null
+          total_rewards_earned?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never

@@ -14,6 +14,7 @@ import CouponsPage from '../components/coupons/CouponsPage';
 import BookingPage from '../components/booking/BookingPage';
 import ProfilePage from '../components/profile/ProfilePage';
 import FirebaseProfilePage from '../components/profile/FirebaseProfilePage';
+import ReferralPage from '../components/referral/ReferralPage';
 
 const Index = () => {
   return (
@@ -32,6 +33,7 @@ const Index = () => {
         <Route path="/booking" element={<BookingPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/firebase-profile" element={<FirebaseProfilePage />} />
+        <Route path="/referrals" element={<ReferralPage />} />
       </Routes>
     </div>
   );
