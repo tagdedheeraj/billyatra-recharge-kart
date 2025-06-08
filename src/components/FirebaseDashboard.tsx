@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Smartphone, Gift, Plane, Bus, Train, User, LogOut, Zap, Star, Ticket, Users } from 'lucide-react';
@@ -6,11 +5,16 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { useFirebaseAuth } from '../hooks/useFirebaseAuth';
 import { useToast } from './ui/use-toast';
+import { useNotificationService } from '../hooks/useNotificationService';
+import NotificationBell from './notifications/NotificationBell';
 
 const FirebaseDashboard = () => {
   const navigate = useNavigate();
   const { user, loading, logOut } = useFirebaseAuth();
   const { toast } = useToast();
+  
+  // Initialize notification service
+  useNotificationService();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -124,6 +128,7 @@ const FirebaseDashboard = () => {
             </Link>
             
             <div className="flex items-center space-x-4">
+              <NotificationBell />
               <Link to="/firebase-profile">
                 <Button variant="outline" size="sm" className="text-purple-600 border-purple-200 hover:bg-purple-50">
                   <User className="h-4 w-4 mr-2" />

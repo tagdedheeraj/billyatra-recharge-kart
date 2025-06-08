@@ -1,35 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Smartphone, Zap, Gift, Star, CreditCard } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Smartphone, 
+  Zap, 
+  Gift, 
+  Crown, 
+  Star, 
+  ArrowLeft, 
+  CheckCircle, 
+  Clock, 
+  AlertCircle,
+  Trophy,
+  Sparkles
+} from 'lucide-react';
 import { Button } from '../ui/button';
-import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Badge } from '../ui/badge';
 import { useFirebaseAuth } from '../../hooks/useFirebaseAuth';
 import { useFirestore } from '../../hooks/useFirestore';
-import { useReferrals } from '../../hooks/useReferrals';
 import { useToast } from '../ui/use-toast';
+import { useNotificationService } from '../../hooks/useNotificationService';
 import ScratchCard from './ScratchCard';
 
 const FirebaseRechargePage = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useFirebaseAuth();
+  const { user, loading } = useFirebaseAuth();
   const { saveTransaction } = useFirestore();
-  const { processReferralReward } = useReferrals();
   const { toast } = useToast();
+  const { notifyTransaction, notifyOffer } = useNotificationService();
   
   const [mobile, setMobile] = useState('');
-  const [operator, setOperator] = useState('');
-  const [amount, setAmount] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showScratchCard, setShowScratchCard] = useState(false);
-  const [rewardAmount, setRewardAmount] = useState(0);
+  const [rechargeSuccess, setRechargeSuccess] = useState(false);
+  const [selectedOperator, setSelectedOperator] = useState('');
 
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!loading && !user) {
       navigate('/firebase-auth');
     }
-  }, [user, authLoading, navigate]);
+  }, [user, loading, navigate]);
 
   const operators = [
     { value: 'jio', label: 'Jio' },
@@ -38,76 +51,109 @@ const FirebaseRechargePage = () => {
     { value: 'bsnl', label: 'BSNL' }
   ];
 
-  const quickAmounts = [99, 149, 199, 299, 399, 499, 599, 999];
+  const plans = [
+    { value: 'basic', label: 'Basic', amount: 100 },
+    { value: 'premium', label: 'Premium', amount: 200 },
+    { value: 'ultimate', label: 'Ultimate', amount: 300 }
+  ];
 
-  const handleRecharge = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!mobile || !operator || !amount) {
+  const handleRecharge = async () => {
+    if (!selectedPlan || !mobile || !selectedOperator) {
       toast({
-        title: "Error",
-        description: "Please fill all fields",
+        title: "Incomplete Information",
+        description: "Please select an operator, enter mobile number and choose a plan",
         variant: "destructive"
       });
       return;
     }
 
-    setLoading(true);
-    try {
-      // Calculate rewards (2% of recharge amount)
-      const rewardEarned = Math.floor(parseFloat(amount) * 0.02);
-      
-      // Save transaction
-      const transactionId = await saveTransaction({
-        type: 'Mobile Recharge',
-        amount: parseFloat(amount),
-        mobile,
-        operator,
-        status: 'success',
-        rewardEarned
-      });
+    setIsProcessing(true);
 
-      if (transactionId) {
-        // Check for referral rewards
-        if (user?.email) {
-          await processReferralReward(user.email);
+    try {
+      // Notify that processing has started
+      notifyTransaction('pending', selectedPlan.amount, mobile);
+
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Simulate random success/failure (90% success rate)
+      const isSuccess = Math.random() > 0.1;
+
+      if (isSuccess) {
+        // Calculate reward (2% of recharge amount)
+        const rewardAmount = Math.floor(selectedPlan.amount * 0.02);
+
+        // Save transaction to Firestore
+        await saveTransaction({
+          type: 'mobile_recharge',
+          amount: selectedPlan.amount,
+          mobile,
+          operator: selectedOperator,
+          status: 'success',
+          rewardEarned: rewardAmount
+        });
+
+        // Send success notification
+        notifyTransaction('success', selectedPlan.amount, mobile);
+
+        // Show success and scratch card
+        setRechargeSuccess(true);
+        setShowScratchCard(true);
+
+        // Send promotional offers occasionally
+        if (Math.random() > 0.7) {
+          setTimeout(() => {
+            notifyOffer(
+              "🎯 Next Recharge Offer",
+              "Get 15% extra on your next recharge above ₹200!",
+              "/offers"
+            );
+          }, 3000);
         }
 
         toast({
-          title: "Recharge Successful!",
-          description: `₹${amount} recharged to ${mobile}`,
-          variant: "default"
+          title: "Recharge Successful! 🎉",
+          description: `₹${selectedPlan.amount} recharged successfully. You earned ₹${rewardAmount} cashback!`,
         });
 
-        setRewardAmount(rewardEarned);
-        setShowScratchCard(true);
+      } else {
+        // Send failure notification
+        notifyTransaction('failed', selectedPlan.amount, mobile);
         
-        // Reset form
-        setMobile('');
-        setOperator('');
-        setAmount('');
+        toast({
+          title: "Recharge Failed",
+          description: "Unable to process your recharge. Please try again.",
+          variant: "destructive"
+        });
       }
+
     } catch (error) {
       console.error('Recharge error:', error);
+      notifyTransaction('failed', selectedPlan.amount, mobile);
+      
       toast({
-        title: "Recharge Failed",
+        title: "Error",
         description: "Something went wrong. Please try again.",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsProcessing(false);
     }
   };
 
-  const handleScratchComplete = () => {
-    setShowScratchCard(false);
-    toast({
-      title: "Reward Added!",
-      description: `₹${rewardAmount} added to your account`,
-      variant: "default"
-    });
-  };
+  if (showScratchCard) {
+    return (
+      <ScratchCard 
+        amount={Math.floor(selectedPlan.amount * 0.02)}
+        onComplete={() => {
+          setShowScratchCard(false);
+          navigate('/firebase-dashboard');
+        }} 
+      />
+    );
+  }
 
-  if (authLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-pink-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -214,7 +260,7 @@ const FirebaseRechargePage = () => {
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
                     Operator
                   </label>
-                  <Select value={operator} onValueChange={setOperator}>
+                  <Select value={selectedOperator} onValueChange={setSelectedOperator}>
                     <SelectTrigger className="h-12">
                       <SelectValue placeholder="Select your operator" />
                     </SelectTrigger>
@@ -230,44 +276,28 @@ const FirebaseRechargePage = () => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Recharge Amount
+                    Plan
                   </label>
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    className="h-12"
-                    min="10"
-                    max="2000"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Quick Amount Selection
-                  </label>
-                  <div className="grid grid-cols-4 gap-2">
-                    {quickAmounts.map((amt) => (
-                      <Button
-                        key={amt}
-                        type="button"
-                        variant="outline"
-                        onClick={() => setAmount(amt.toString())}
-                        className="h-10 text-sm"
-                      >
-                        ₹{amt}
-                      </Button>
-                    ))}
-                  </div>
+                  <Select value={selectedPlan?.value} onValueChange={setSelectedPlan}>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select your plan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {plans.map((plan) => (
+                        <SelectItem key={plan.value} value={plan.value}>
+                          {plan.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <Button
                   type="submit"
                   className="w-full h-12 bg-gradient-to-r from-orange-500 to-pink-500 hover:opacity-90 text-lg font-semibold"
-                  disabled={loading || !mobile || !operator || !amount}
+                  disabled={isProcessing || !selectedPlan || !mobile || !selectedOperator}
                 >
-                  {loading ? (
+                  {isProcessing ? (
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       <span>Processing...</span>
@@ -281,15 +311,15 @@ const FirebaseRechargePage = () => {
                 </Button>
               </form>
 
-              {amount && (
+              {selectedPlan && (
                 <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Recharge Amount:</span>
-                    <span className="font-bold text-gray-900">₹{amount}</span>
+                    <span className="font-bold text-gray-900">₹{selectedPlan.amount}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm mt-1">
                     <span className="text-gray-600">Cashback (2%):</span>
-                    <span className="font-bold text-green-600">₹{Math.floor(parseFloat(amount || '0') * 0.02)}</span>
+                    <span className="font-bold text-green-600">₹{Math.floor(selectedPlan.amount * 0.02)}</span>
                   </div>
                 </div>
               )}
@@ -342,14 +372,6 @@ const FirebaseRechargePage = () => {
           </div>
         </div>
       </div>
-
-      {/* Scratch Card Modal */}
-      {showScratchCard && (
-        <ScratchCard
-          amount={rewardAmount}
-          onComplete={handleScratchComplete}
-        />
-      )}
     </div>
   );
 };
