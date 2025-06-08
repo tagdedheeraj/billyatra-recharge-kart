@@ -1,10 +1,9 @@
 
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { Gift, CreditCard, Megaphone, Info, ExternalLink, X } from 'lucide-react';
+import { Bell, Gift, Smartphone, AlertCircle, ExternalLink, Check, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { Badge } from '../ui/badge';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { Notification } from '../../types/notifications';
 
@@ -14,104 +13,145 @@ const NotificationList: React.FC = () => {
   const getIcon = (type: Notification['type']) => {
     switch (type) {
       case 'offer':
-        return <Gift className="h-4 w-4 text-green-500" />;
+        return Gift;
       case 'transaction':
-        return <CreditCard className="h-4 w-4 text-blue-500" />;
+        return Smartphone;
       case 'promotional':
-        return <Megaphone className="h-4 w-4 text-purple-500" />;
+        return Gift;
+      case 'system':
+        return AlertCircle;
       default:
-        return <Info className="h-4 w-4 text-gray-500" />;
+        return Bell;
     }
   };
 
-  const getPriorityColor = (priority: Notification['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 border-red-200';
-      case 'medium':
-        return 'bg-yellow-100 border-yellow-200';
+  const getTypeColor = (type: Notification['type']) => {
+    switch (type) {
+      case 'offer':
+        return 'bg-green-100 text-green-800';
+      case 'transaction':
+        return 'bg-blue-100 text-blue-800';
+      case 'promotional':
+        return 'bg-purple-100 text-purple-800';
+      case 'system':
+        return 'bg-orange-100 text-orange-800';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   if (notifications.length === 0) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        <Bell className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-        <p>No notifications yet</p>
+      <div className="p-8 text-center">
+        <Bell className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+        <p className="text-gray-500">No notifications yet</p>
       </div>
     );
   }
 
   return (
     <div className="max-h-96">
-      <div className="p-3 border-b flex justify-between items-center">
-        <Button 
-          variant="ghost" 
-          size="sm" 
+      <div className="flex justify-between items-center p-4 border-b">
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={markAllAsRead}
-          disabled={notifications.every(n => n.read)}
+          className="text-blue-600 hover:text-blue-700"
         >
+          <Check className="h-4 w-4 mr-1" />
           Mark all read
         </Button>
-        <Button variant="ghost" size="sm" onClick={clearAll}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={clearAll}
+          className="text-red-600 hover:text-red-700"
+        >
+          <Trash2 className="h-4 w-4 mr-1" />
           Clear all
         </Button>
       </div>
       
       <ScrollArea className="h-80">
-        <div className="space-y-1">
-          {notifications.map((notification) => (
-            <div
-              key={notification.id}
-              className={`p-3 border-l-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                !notification.read ? 'bg-blue-50 border-l-blue-500' : 'border-l-gray-200'
-              } ${getPriorityColor(notification.priority)}`}
-              onClick={() => markAsRead(notification.id)}
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex items-start space-x-3 flex-1">
-                  {getIcon(notification.type)}
+        <div className="p-2">
+          {notifications.map((notification) => {
+            const IconComponent = getIcon(notification.type);
+            return (
+              <div
+                key={notification.id}
+                className={`p-3 mb-2 rounded-lg border transition-colors ${
+                  notification.read 
+                    ? 'bg-gray-50 border-gray-200' 
+                    : 'bg-white border-blue-200 shadow-sm'
+                }`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className={`p-2 rounded-full ${getTypeColor(notification.type)}`}>
+                    <IconComponent className="h-4 w-4" />
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="text-sm font-medium text-gray-900 truncate">
+                    <div className="flex items-center justify-between">
+                      <h4 className={`text-sm font-medium ${
+                        notification.read ? 'text-gray-700' : 'text-gray-900'
+                      }`}>
                         {notification.title}
                       </h4>
                       {!notification.read && (
-                        <Badge variant="secondary" className="text-xs">New</Badge>
+                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                    
+                    <p className={`text-sm mt-1 ${
+                      notification.read ? 'text-gray-500' : 'text-gray-600'
+                    }`}>
                       {notification.message}
                     </p>
+                    
                     <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(notification.timestamp, { addSuffix: true })}
+                      <span className="text-xs text-gray-400">
+                        {notification.timestamp.toLocaleDateString()}
                       </span>
-                      {notification.actionUrl && (
-                        <Button variant="ghost" size="sm" className="text-xs p-1 h-auto">
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          {notification.actionText || 'View'}
+                      
+                      <div className="flex space-x-2">
+                        {notification.actionUrl && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
+                            onClick={() => window.open(notification.actionUrl, '_blank')}
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" />
+                            {notification.actionText || 'View'}
+                          </Button>
+                        )}
+                        
+                        {!notification.read && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => markAsRead(notification.id)}
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                        )}
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
+                          onClick={() => removeNotification(notification.id)}
+                        >
+                          <Trash2 className="h-3 w-3" />
                         </Button>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-1 h-auto"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeNotification(notification.id);
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </ScrollArea>
     </div>
