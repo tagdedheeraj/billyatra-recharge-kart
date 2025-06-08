@@ -84,7 +84,7 @@ const LandingPage = () => {
               </Link>
             )}
             <Link to="/recharge">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto border-white text-white hover:bg-white hover:text-orange-600 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3">
+              <Button size="lg" className="w-full sm:w-auto bg-yellow-400 text-gray-900 hover:bg-yellow-300 border-2 border-yellow-400 hover:border-yellow-300 text-base lg:text-lg px-6 lg:px-8 py-2.5 lg:py-3 font-semibold">
                 {isMobile ? 'Quick Recharge' : 'Start Recharging'}
               </Button>
             </Link>
